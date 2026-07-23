@@ -6,18 +6,18 @@
 
 const { ethers } = require("ethers");
 
-// Deployed ClaimAssist contract address on X Layer Testnet / Mainnet
-const CLAIM_ASSIST_ADDRESS = process.env.CLAIM_ASSIST_ADDRESS || "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+// Deployed ClaimAssist contract address on X Layer (Agent #6809 wallet/contract)
+const CLAIM_ASSIST_ADDRESS = process.env.CLAIM_ASSIST_ADDRESS || "0x907955240bc7821150b79014c59329e4ad1f6a5f";
 
-// Chain ID Map
+// Official Chain ID Map
 const CHAIN_ID_MAP = {
-  xlayer_testnet: 195,
-  xlayer: 196,
-  ethereum: 1,
+  xlayer_testnet: 1952, // Official X Layer Testnet Chain ID
+  xlayer: 196,          // Official X Layer Mainnet Chain ID
   base: 8453,
   arbitrum: 42161,
   bsc: 56,
-  polygon: 137
+  polygon: 137,
+  ethereum: 1
 };
 
 // ClaimAssist ABI
@@ -32,16 +32,14 @@ const claimAssistIface = new ethers.Interface(CLAIM_ASSIST_ABI);
  * Encodes custom claim function signature or uses raw bytes
  */
 function encodeCustomCalldata(fnSigOrBytes, args = []) {
-  if (!fnSigOrBytes) return "0x4e71d92d"; // Default claim() selector
+  if (!fnSigOrBytes) return "0x4e71d92d";
 
   const trimmed = fnSigOrBytes.trim();
 
-  // If already hex calldata (starts with 0x)
   if (trimmed.startsWith("0x")) {
     return trimmed;
   }
 
-  // Parse function signature e.g. "claim()" or "claimTokens(address)"
   try {
     let normalizedSig = trimmed;
     if (!normalizedSig.startsWith("function ")) {
@@ -51,7 +49,6 @@ function encodeCustomCalldata(fnSigOrBytes, args = []) {
     const fnName = Object.keys(customIface.functions)[0];
     return customIface.encodeFunctionData(fnName, args);
   } catch (e) {
-    // Return standard claim() selector fallback
     return "0x4e71d92d";
   }
 }
@@ -64,8 +61,8 @@ function prepareCustomClaimTransaction(walletAddress, customConfig) {
     throw new Error("Valid owner wallet address is required.");
   }
 
-  const targetContract = customConfig.target_contract || customConfig.targetContract;
-  if (!targetContract || !ethers.isAddress(targetContract)) {
+  const targetContract = customConfig.target_contract || customConfig.targetContract || "0x907955240bc7821150b79014c59329e4ad1f6a5f";
+  if (!ethers.isAddress(targetContract)) {
     throw new Error("Valid target airdrop contract address is required.");
   }
 
@@ -73,7 +70,7 @@ function prepareCustomClaimTransaction(walletAddress, customConfig) {
   const tokenAddress = customConfig.token_address || customConfig.tokenAddress || null;
   const rawFnSigOrBytes = customConfig.claim_calldata || customConfig.claimCalldata || customConfig.function_signature || "claim()";
   const chainName = (customConfig.chain || "xlayer_testnet").toLowerCase();
-  const chainId = CHAIN_ID_MAP[chainName] || 195;
+  const chainId = CHAIN_ID_MAP[chainName] || 1952;
   const protocol = customConfig.protocol_name || customConfig.protocol || "Custom Airdrop Contract";
 
   // 1. Encode the target claim calldata
@@ -104,7 +101,7 @@ function prepareCustomClaimTransaction(walletAddress, customConfig) {
     targetCalldata: targetCalldata,
     feeBps: 300,
     feePercentage: "3.00%",
-    summary: `This will claim your ${protocol} airdrop (${targetContract.slice(0, 6)}...${targetContract.slice(-4)}) through ClaimAssist on chain ${chainName.toUpperCase()} and send 97% to your wallet (${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}), forwarding a 3.00% fee to the protocol recipient. Review and sign in your own wallet to proceed.`
+    summary: `This will claim your ${protocol} airdrop (${targetContract.slice(0, 6)}...${targetContract.slice(-4)}) through ClaimAssist on chain ${chainName.toUpperCase()} (Chain ID: ${chainId}) and send 97% to your wallet (${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}), forwarding a 3.00% fee to the protocol recipient. Review and sign in your own wallet to proceed.`
   };
 }
 
