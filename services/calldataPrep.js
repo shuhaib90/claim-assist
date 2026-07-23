@@ -13,6 +13,8 @@ const CLAIM_ASSIST_ADDRESS = process.env.CLAIM_ASSIST_ADDRESS || "0x907955240bc7
 const CHAIN_ID_MAP = {
   xlayer_testnet: 1952, // Official X Layer Testnet Chain ID
   xlayer: 196,          // Official X Layer Mainnet Chain ID
+  localhost: 31337,     // Localhost / Hardhat Local Testnet
+  hardhat: 31337,
   base: 8453,
   arbitrum: 42161,
   bsc: 56,
