@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClaimAssist — Non-Custodial Airdrop Claim Agent (X Layer Testnet)</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains-Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Three.js for 3D Background Canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Ethers.js for Web3 Wallet Sign & Execution -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+</head>
+<body class="mono-theme">
+
+  <!-- 3D WebGL Canvas -->
+  <canvas id="webgl-bg"></canvas>
+
+  <!-- Header -->
+  <header class="mono-header">
+    <div class="mono-container header-flex">
+      <div class="brand">
+        <a href="/" class="brand-logo">
+          <svg class="svg-logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"/>
+            <path d="M15 3h6v6"/>
+            <path d="M10 14L21 3"/>
+          </svg>
+          CLAIM ASSIST
+        </a>
+        <span class="version-tag">v1.0 / X LAYER TESTNET</span>
+      </div>
+
+      <nav class="mono-nav">
+        <a href="#airdrops" class="active">ELIGIBLE AIRDROPS</a>
+        <a href="#payload">CLAIM PAYLOAD</a>
+        <a href="#contract">SMART CONTRACT</a>
+        <a href="https://github.com/shuhaib90/fix-it-asp">GITHUB ↗</a>
+      </nav>
+
+      <div class="header-status">
+        <button id="btnConnectWallet" class="wallet-btn-mono">
+          <span id="walletBtnText">CONNECT WALLET</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mono-container rel-z">
+
+    <!-- Hero Header -->
+    <section class="hero-mono" id="hero">
+      <div class="meta-row">
+        <span class="mono-tag">NON-CUSTODIAL AIRDROP CLAIM</span>
+        <span class="mono-tag">FIXED FEE: 3.00%</span>
+        <span class="mono-tag">[ CHAIN ID: 195 ]</span>
+      </div>
+
+      <h1 class="hero-heading">1-TRANSACTION AIRDROP CLAIM & FEE SPLIT</h1>
+      <p class="hero-sub">
+        Claim external airdrops directly from your own wallet. ClaimAssist routes your claim transaction, forwards 97% directly to your wallet, and sends 3% fee to the protocol — with zero custody and no private keys required.
+      </p>
+    </section>
+
+    <!-- Wallet Address Input & Airdrop Selector -->
+    <section class="grid-split" id="airdrops">
+      
+      <!-- Card 1: Available Airdrops -->
+      <div class="mono-card">
+        <div class="card-title-bar">
+          <h2>AVAILABLE TESTNET AIRDROPS</h2>
+          <span class="card-code">CHAIN ID: 195</span>
+        </div>
+
+        <div class="input-group-mono">
+          <label>RECIPIENT WALLET ADDRESS</label>
+          <input type="text" id="walletInput" placeholder="0x..." value="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045">
+        </div>
+
+        <div class="airdrop-list">
+          <div class="airdrop-item active" data-id="xlayer_genesis_native">
+            <div class="airdrop-head">
+              <strong>X Layer Genesis Faucet/Airdrop</strong>
+              <span class="mono-badge">[ NATIVE ETH ]</span>
+            </div>
+            <p>Reward: 1.0 OKB (Native Token) | Fee: 3.00% (0.03 OKB)</p>
+            <button class="btn-mono-action" onclick="selectAndPrepare('xlayer_genesis_native')">
+              PREPARE UNSIGNED CLAIM TX
+            </button>
+          </div>
+
+          <div class="airdrop-item" data-id="xlayer_erc20_reward">
+            <div class="airdrop-head">
+              <strong>X Layer Liquidity Reward Vault</strong>
+              <span class="mono-badge">[ ERC-20 TAT ]</span>
+            </div>
+            <p>Reward: 1,000 TAT Tokens | Fee: 3.00% (30 TAT)</p>
+            <button class="btn-mono-action" onclick="selectAndPrepare('xlayer_erc20_reward')">
+              PREPARE UNSIGNED CLAIM TX
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Unsigned Transaction Payload Inspector -->
+      <div class="mono-card" id="payload">
+        <div class="card-title-bar">
+          <h2>UNSIGNED TRANSACTION PAYLOAD</h2>
+          <span class="mono-badge">[ NON-CUSTODIAL ]</span>
+        </div>
+
+        <div class="report-box">
+          <div class="report-section">
+            <span class="section-label">[ AGENT SUMMARY ]</span>
+            <p id="txSummaryText">Select an eligible airdrop on the left to build your unsigned claim transaction.</p>
+          </div>
+
+          <div class="report-section">
+            <span class="section-label">[ RAW UNSIGNED TRANSACTION (FOR YOUR WALLET TO SIGN) ]</span>
+            <pre class="json-code" id="rawJsonCode">{
+  "to": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "data": "0x...",
+  "value": "0",
+  "chainId": 195
+}</pre>
+          </div>
+
+          <div class="cta-actions">
+            <button id="btnSignWallet" class="btn-primary-mono" onclick="executeClaimInWallet()">
+              SIGN & EXECUTE IN WALLET ↗
+            </button>
+            <button class="btn-secondary-mono" onclick="copyCalldata()">
+              COPY CALLDATA JSON
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Solidity Contract Verification Section -->
+    <section class="mono-section" id="contract">
+      <div class="card-title-bar">
+        <h2>SOLIDITY SMART CONTRACT AUDIT & GUARANTEES</h2>
+        <span class="card-code">ClaimAssist.sol</span>
+      </div>
+
+      <div class="cli-guide-grid">
+        <div class="cli-step-card">
+          <div class="step-num">01 / GUARANTEE</div>
+          <h3>msg.sender Ownership Verification</h3>
+          <p>The contract is invoked directly by your wallet (msg.sender). The contract never takes custody of funds across blocks.</p>
+        </div>
+
+        <div class="cli-step-card">
+          <div class="step-num">02 / GUARANTEE</div>
+          <h3>Fixed 3% Fee Distribution</h3>
+          <p>ClaimAssist calculates 3.00% fee on-chain, transfers 3% to fee recipient, and 97% directly to msg.sender in a single transaction.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="mono-footer">
+    <div class="mono-container footer-flex">
+      <div>
+        <strong>CLAIM ASSIST AGENT</strong> — X Layer Testnet (Chain 195)
+      </div>
+      <div class="footer-links">
+        <a href="#airdrops">AIRDROPS</a>
+        <a href="#payload">PAYLOAD</a>
+        <a href="#contract">CONTRACT</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 3D Background
+    function init3DBackground() {
+      const canvas = document.getElementById('webgl-bg');
+      if (!canvas || typeof THREE === 'undefined') return;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      const geometry = new THREE.IcosahedronGeometry(12, 2);
+      const material = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.12 });
+      const sphere = new THREE.Mesh(geometry, material);
+      scene.add(sphere);
+
+      camera.position.z = 18;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        sphere.rotation.x += 0.001;
+        sphere.rotation.y += 0.0015;
+        renderer.render(scene, camera);
+      }
+      animate();
+    }
+    init3DBackground();
+
+    let currentTxPayload = null;
+    let userAccount = null;
+
+    async function connectWallet() {
+      const ethereum = window.okxwallet || window.ethereum;
+      if (!ethereum) {
+        alert("Web3 Wallet not detected. Please install OKX Wallet or MetaMask.");
+        return;
+      }
+      try {
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        userAccount = accounts[0];
+        document.getElementById('walletBtnText').innerText = userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
+        document.getElementById('walletInput').value = userAccount;
+        selectAndPrepare('xlayer_genesis_native');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    document.getElementById('btnConnectWallet').addEventListener('click', connectWallet);
+
+    async function selectAndPrepare(airdropId) {
+      const wallet = document.getElementById('walletInput').value || '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+
+      try {
+        const res = await fetch('/api/prepare-claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ wallet_address: wallet, airdrop_id: airdropId })
+        });
+        const result = await res.json();
+        if (result.ok && result.data) {
+          currentTxPayload = result.data.unsigned_transaction;
+          document.getElementById('txSummaryText').innerText = currentTxPayload.summary;
+          document.getElementById('rawJsonCode').innerText = JSON.stringify(currentTxPayload, null, 2);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function executeClaimInWallet() {
+      if (!currentTxPayload) return;
+      const ethereum = window.okxwallet || window.ethereum;
+      if (!ethereum) {
+        alert("Please connect your Web3 wallet (OKX Wallet / MetaMask) to sign.");
+        return;
+      }
+
+      try {
+        alert(`Requesting signature in your wallet for ClaimAssist transaction...\n\nTarget: ${currentTxPayload.to}\nChain ID: ${currentTxPayload.chainId}\nFee: 3.00%`);
+        const txHash = await ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: userAccount || document.getElementById('walletInput').value,
+            to: currentTxPayload.to,
+            data: currentTxPayload.data,
+            value: "0x0"
+          }]
+        });
+        alert(`Claim Transaction Broadcasted!\n\nTxHash: ${txHash}`);
+      } catch (e) {
+        console.log(e.message);
+      }
+    }
+
+    function copyCalldata() {
+      if (currentTxPayload) {
+        navigator.clipboard.writeText(JSON.stringify(currentTxPayload, null, 2));
+        alert("Unsigned transaction payload copied to clipboard!");
+      }
+    }
+
+    selectAndPrepare('xlayer_genesis_native');
+  </script>
+
+</body>
+</html>

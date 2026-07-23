@@ -1,0 +1,21 @@
+{
+  "name": "claim-assist",
+  "version": "1.0.0",
+  "description": "Claim Assist — Non-Custodial Airdrop Claim + Fee Contract (X Layer Testnet)",
+  "main": "main.js",
+  "scripts": {
+    "test": "npx hardhat test",
+    "compile": "npx hardhat compile",
+    "deploy": "npx hardhat run scripts/deploy.js --network xLayerTestnet",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "ethers": "^6.11.1",
+    "hardhat": "^2.22.2"
+  }
+}
