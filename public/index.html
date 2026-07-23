@@ -3,16 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClaimAssist — Non-Custodial Airdrop Claim Agent (X Layer Testnet)</title>
+  <title>ClaimAssist — Dynamic Non-Custodial Airdrop Builder</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains-Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Three.js for 3D Background Canvas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <!-- Ethers.js for Web3 Wallet Sign & Execution -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 </head>
 <body class="mono-theme">
 
@@ -31,14 +29,13 @@
           </svg>
           CLAIM ASSIST
         </a>
-        <span class="version-tag">v1.0 / X LAYER TESTNET</span>
+        <span class="version-tag">v2.0 / DYNAMIC AIRDROP BUILDER</span>
       </div>
 
       <nav class="mono-nav">
-        <a href="#airdrops" class="active">ELIGIBLE AIRDROPS</a>
+        <a href="#builder" class="active">CUSTOM AIRDROP BUILDER</a>
         <a href="#payload">CLAIM PAYLOAD</a>
-        <a href="#contract">SMART CONTRACT</a>
-        <a href="https://github.com/shuhaib90/fix-it-asp">GITHUB ↗</a>
+        <a href="#presets">PRESETS</a>
       </nav>
 
       <div class="header-status">
@@ -52,74 +49,99 @@
   <main class="mono-container rel-z">
 
     <!-- Hero Header -->
-    <section class="hero-mono" id="hero">
+    <section class="hero-mono" id="builder">
       <div class="meta-row">
-        <span class="mono-tag">NON-CUSTODIAL AIRDROP CLAIM</span>
+        <span class="mono-tag">DYNAMIC AIRDROP CLAIM BUILDER</span>
         <span class="mono-tag">FIXED FEE: 3.00%</span>
-        <span class="mono-tag">[ CHAIN ID: 195 ]</span>
+        <span class="mono-tag">[ REAL CALldata ENCODER ]</span>
       </div>
 
-      <h1 class="hero-heading">1-TRANSACTION AIRDROP CLAIM & FEE SPLIT</h1>
+      <h1 class="hero-heading">CUSTOM AIRDROP CONTRACT CLAIM BUILDER</h1>
       <p class="hero-sub">
-        Claim external airdrops directly from your own wallet. ClaimAssist routes your claim transaction, forwards 97% directly to your wallet, and sends 3% fee to the protocol — with zero custody and no private keys required.
+        Enter target contract address, claim function signature/calldata, claim type, token address, and target chain. ClaimAssist builds the exact unsigned transaction payload for your wallet to review, sign, and execute.
       </p>
     </section>
 
-    <!-- Wallet Address Input & Airdrop Selector -->
-    <section class="grid-split" id="airdrops">
+    <!-- Dynamic Custom Input Form & Payload Split Grid -->
+    <section class="grid-split">
       
-      <!-- Card 1: Available Airdrops -->
+      <!-- Custom Input Form Card -->
       <div class="mono-card">
         <div class="card-title-bar">
-          <h2>AVAILABLE TESTNET AIRDROPS</h2>
-          <span class="card-code">CHAIN ID: 195</span>
+          <h2>CUSTOM AIRDROP DETAILS FORM</h2>
+          <span class="card-code">REAL ABI LOGIC</span>
         </div>
 
-        <div class="input-group-mono">
-          <label>RECIPIENT WALLET ADDRESS</label>
-          <input type="text" id="walletInput" placeholder="0x..." value="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045">
-        </div>
-
-        <div class="airdrop-list">
-          <div class="airdrop-item active" data-id="xlayer_genesis_native">
-            <div class="airdrop-head">
-              <strong>X Layer Genesis Faucet/Airdrop</strong>
-              <span class="mono-badge">[ NATIVE ETH ]</span>
-            </div>
-            <p>Reward: 1.0 OKB (Native Token) | Fee: 3.00% (0.03 OKB)</p>
-            <button class="btn-mono-action" onclick="selectAndPrepare('xlayer_genesis_native')">
-              PREPARE UNSIGNED CLAIM TX
-            </button>
+        <form id="customClaimForm" onsubmit="event.preventDefault(); generateCustomClaim();">
+          <div class="input-group-mono">
+            <label>YOUR RECIPIENT WALLET ADDRESS (REQUIRED)</label>
+            <input type="text" id="ownerWalletInput" placeholder="0x..." value="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045">
           </div>
 
-          <div class="airdrop-item" data-id="xlayer_erc20_reward">
-            <div class="airdrop-head">
-              <strong>X Layer Liquidity Reward Vault</strong>
-              <span class="mono-badge">[ ERC-20 TAT ]</span>
-            </div>
-            <p>Reward: 1,000 TAT Tokens | Fee: 3.00% (30 TAT)</p>
-            <button class="btn-mono-action" onclick="selectAndPrepare('xlayer_erc20_reward')">
-              PREPARE UNSIGNED CLAIM TX
-            </button>
+          <div class="input-group-mono">
+            <label>TARGET AIRDROP CONTRACT ADDRESS (REQUIRED)</label>
+            <input type="text" id="targetContractInput" placeholder="0x8a9424745056Eb399FD19a0EC26A14316684e274" value="0x8a9424745056Eb399FD19a0EC26A14316684e274">
           </div>
-        </div>
+
+          <div class="input-group-mono">
+            <label>CLAIM FUNCTION SIGNATURE OR RAW CALLDATA</label>
+            <input type="text" id="calldataInput" placeholder="e.g. claim() or 0x4e71d92d" value="claim()">
+          </div>
+
+          <div class="grid-2col">
+            <div class="input-group-mono">
+              <label>CLAIM REWARD TYPE</label>
+              <select id="claimTypeInput" class="mono-select" onchange="toggleTokenInput()">
+                <option value="native">Native Token (ETH/OKB)</option>
+                <option value="erc20">ERC-20 Token</option>
+              </select>
+            </div>
+
+            <div class="input-group-mono">
+              <label>TARGET BLOCKCHAIN NETWORK</label>
+              <select id="chainInput" class="mono-select">
+                <option value="xlayer_testnet">X Layer Testnet (Chain 195)</option>
+                <option value="xlayer">X Layer Mainnet (Chain 196)</option>
+                <option value="base">Base L2 (Chain 8453)</option>
+                <option value="arbitrum">Arbitrum L2 (Chain 42161)</option>
+                <option value="ethereum">Ethereum L1 (Chain 1)</option>
+                <option value="bsc">BNB Chain (Chain 56)</option>
+                <option value="polygon">Polygon (Chain 137)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="input-group-mono" id="tokenAddressGroup" style="display: none;">
+            <label>ERC-20 TOKEN ADDRESS (FOR TOKEN CLAIMS)</label>
+            <input type="text" id="tokenAddressInput" placeholder="0x..." value="0x5FbDB2315678afecb367f032d93F642f64180aa3">
+          </div>
+
+          <div class="input-group-mono">
+            <label>PROTOCOL / AIRDROP NAME</label>
+            <input type="text" id="protocolNameInput" placeholder="e.g. Custom Liquidity Rewards" value="Custom Liquidity Rewards">
+          </div>
+
+          <button type="submit" class="btn-mono-action">
+            GENERATE UNSIGNED CLAIM PAYLOAD
+          </button>
+        </form>
       </div>
 
-      <!-- Card 2: Unsigned Transaction Payload Inspector -->
+      <!-- Result Card -->
       <div class="mono-card" id="payload">
         <div class="card-title-bar">
-          <h2>UNSIGNED TRANSACTION PAYLOAD</h2>
+          <h2>GENERATED UNSIGNED TRANSACTION</h2>
           <span class="mono-badge">[ NON-CUSTODIAL ]</span>
         </div>
 
         <div class="report-box">
           <div class="report-section">
             <span class="section-label">[ AGENT SUMMARY ]</span>
-            <p id="txSummaryText">Select an eligible airdrop on the left to build your unsigned claim transaction.</p>
+            <p id="txSummaryText">Fill in the custom airdrop details on the left and click 'GENERATE' to build your unsigned claim transaction.</p>
           </div>
 
           <div class="report-section">
-            <span class="section-label">[ RAW UNSIGNED TRANSACTION (FOR YOUR WALLET TO SIGN) ]</span>
+            <span class="section-label">[ REAL UNSIGNED TRANSACTION PAYLOAD (READY FOR WALLET SIGN) ]</span>
             <pre class="json-code" id="rawJsonCode">{
   "to": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
   "data": "0x...",
@@ -141,25 +163,14 @@
 
     </section>
 
-    <!-- Solidity Contract Verification Section -->
-    <section class="mono-section" id="contract">
-      <div class="card-title-bar">
-        <h2>SOLIDITY SMART CONTRACT AUDIT & GUARANTEES</h2>
-        <span class="card-code">ClaimAssist.sol</span>
+    <!-- Presets Bar -->
+    <section class="mono-section" id="presets">
+      <div class="table-bar">
+        <h2>OR SELECT A PRE-LOADED AIRDROP PRESET</h2>
       </div>
-
-      <div class="cli-guide-grid">
-        <div class="cli-step-card">
-          <div class="step-num">01 / GUARANTEE</div>
-          <h3>msg.sender Ownership Verification</h3>
-          <p>The contract is invoked directly by your wallet (msg.sender). The contract never takes custody of funds across blocks.</p>
-        </div>
-
-        <div class="cli-step-card">
-          <div class="step-num">02 / GUARANTEE</div>
-          <h3>Fixed 3% Fee Distribution</h3>
-          <p>ClaimAssist calculates 3.00% fee on-chain, transfers 3% to fee recipient, and 97% directly to msg.sender in a single transaction.</p>
-        </div>
+      <div class="preset-buttons">
+        <button class="preset-btn" onclick="loadPreset('native')">[ X LAYER NATIVE ETH CLAIM ]</button>
+        <button class="preset-btn" onclick="loadPreset('erc20')">[ X LAYER ERC-20 TOKEN CLAIM ]</button>
       </div>
     </section>
 
@@ -168,12 +179,12 @@
   <footer class="mono-footer">
     <div class="mono-container footer-flex">
       <div>
-        <strong>CLAIM ASSIST AGENT</strong> — X Layer Testnet (Chain 195)
+        <strong>CLAIM ASSIST DYNAMIC BUILDER</strong> — Real ABI Calldata Logic
       </div>
       <div class="footer-links">
-        <a href="#airdrops">AIRDROPS</a>
+        <a href="#builder">BUILDER</a>
         <a href="#payload">PAYLOAD</a>
-        <a href="#contract">CONTRACT</a>
+        <a href="#presets">PRESETS</a>
       </div>
     </div>
   </footer>
@@ -211,6 +222,11 @@
     let currentTxPayload = null;
     let userAccount = null;
 
+    function toggleTokenInput() {
+      const type = document.getElementById('claimTypeInput').value;
+      document.getElementById('tokenAddressGroup').style.display = type === 'erc20' ? 'block' : 'none';
+    }
+
     async function connectWallet() {
       const ethereum = window.okxwallet || window.ethereum;
       if (!ethereum) {
@@ -221,8 +237,8 @@
         const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
         userAccount = accounts[0];
         document.getElementById('walletBtnText').innerText = userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
-        document.getElementById('walletInput').value = userAccount;
-        selectAndPrepare('xlayer_genesis_native');
+        document.getElementById('ownerWalletInput').value = userAccount;
+        generateCustomClaim();
       } catch (e) {
         console.error(e);
       }
@@ -230,24 +246,60 @@
 
     document.getElementById('btnConnectWallet').addEventListener('click', connectWallet);
 
-    async function selectAndPrepare(airdropId) {
-      const wallet = document.getElementById('walletInput').value || '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+    async function generateCustomClaim() {
+      const wallet = document.getElementById('ownerWalletInput').value;
+      const targetContract = document.getElementById('targetContractInput').value;
+      const calldata = document.getElementById('calldataInput').value;
+      const claimType = document.getElementById('claimTypeInput').value;
+      const tokenAddress = document.getElementById('tokenAddressInput').value;
+      const chain = document.getElementById('chainInput').value;
+      const protocolName = document.getElementById('protocolNameInput').value;
 
       try {
         const res = await fetch('/api/prepare-claim', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ wallet_address: wallet, airdrop_id: airdropId })
+          body: JSON.stringify({
+            wallet_address: wallet,
+            target_contract: targetContract,
+            claim_calldata: calldata,
+            claim_type: claimType,
+            token_address: tokenAddress,
+            chain: chain,
+            protocol_name: protocolName
+          })
         });
+
         const result = await res.json();
         if (result.ok && result.data) {
           currentTxPayload = result.data.unsigned_transaction;
           document.getElementById('txSummaryText').innerText = currentTxPayload.summary;
           document.getElementById('rawJsonCode').innerText = JSON.stringify(currentTxPayload, null, 2);
+        } else if (result.error) {
+          alert("Error: " + result.error);
         }
       } catch (err) {
         console.error(err);
       }
+    }
+
+    function loadPreset(presetType) {
+      if (presetType === 'native') {
+        document.getElementById('targetContractInput').value = '0x8a9424745056Eb399FD19a0EC26A14316684e274';
+        document.getElementById('calldataInput').value = '0x4e71d92d';
+        document.getElementById('claimTypeInput').value = 'native';
+        document.getElementById('chainInput').value = 'xlayer_testnet';
+        document.getElementById('protocolNameInput').value = 'X Layer Native ETH Faucet';
+      } else {
+        document.getElementById('targetContractInput').value = '0x8a9424745056Eb399FD19a0EC26A14316684e274';
+        document.getElementById('calldataInput').value = '0x379607f5';
+        document.getElementById('claimTypeInput').value = 'erc20';
+        document.getElementById('tokenAddressInput').value = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+        document.getElementById('chainInput').value = 'xlayer_testnet';
+        document.getElementById('protocolNameInput').value = 'X Layer ERC-20 Reward Vault';
+      }
+      toggleTokenInput();
+      generateCustomClaim();
     }
 
     async function executeClaimInWallet() {
@@ -263,7 +315,7 @@
         const txHash = await ethereum.request({
           method: 'eth_sendTransaction',
           params: [{
-            from: userAccount || document.getElementById('walletInput').value,
+            from: userAccount || document.getElementById('ownerWalletInput').value,
             to: currentTxPayload.to,
             data: currentTxPayload.data,
             value: "0x0"
@@ -282,7 +334,7 @@
       }
     }
 
-    selectAndPrepare('xlayer_genesis_native');
+    generateCustomClaim();
   </script>
 
 </body>

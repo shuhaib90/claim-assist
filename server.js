@@ -1,6 +1,6 @@
 const express = require("express");
 const path = require("path");
-const { generateClaimTx, listEligibleAirdrops, AVAILABLE_AIRDROPS } = require("./main");
+const { generateDynamicClaimTx, PRESET_AIRDROPS } = require("./main");
 
 const app = express();
 const PORT = process.env.PORT || 3006;
@@ -10,20 +10,29 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Healthcheck
 app.get("/api/health", (req, res) => {
-  res.json({ ok: true, service: "ClaimAssist Non-Custodial Airdrop Agent", chainId: 195 });
+  res.json({ ok: true, service: "ClaimAssist Dynamic Non-Custodial Airdrop Agent", chainId: 195 });
 });
 
-// List Available Airdrops
+// List Preset Airdrops
 app.get("/api/airdrops", (req, res) => {
-  const wallet = req.query.wallet || "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045";
-  res.json({ ok: true, data: listEligibleAirdrops(wallet) });
+  res.json({ ok: true, data: PRESET_AIRDROPS });
 });
 
-// Prepare Unsigned Claim Transaction Payload
+// Prepare Unsigned Claim Transaction Payload for Preset or Custom Inputs
 app.post("/api/prepare-claim", (req, res) => {
   try {
-    const { wallet_address, airdrop_id } = req.body;
-    const result = generateClaimTx(wallet_address, airdrop_id);
+    const { wallet_address, airdrop_id, target_contract, claim_calldata, function_signature, claim_type, token_address, chain, protocol_name } = req.body;
+
+    const customConfig = target_contract ? {
+      target_contract,
+      claim_calldata: claim_calldata || function_signature || "claim()",
+      claim_type: claim_type || "native",
+      token_address,
+      chain: chain || "xlayer_testnet",
+      protocol_name: protocol_name || "Custom Airdrop Contract"
+    } : (airdrop_id || "xlayer_genesis_native");
+
+    const result = generateDynamicClaimTx(wallet_address, customConfig);
     res.json({ ok: true, data: result });
   } catch (err) {
     res.status(400).json({ ok: false, error: err.message });
@@ -32,7 +41,7 @@ app.post("/api/prepare-claim", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`\n==================================================`);
-  console.log(`🎁 ClaimAssist Non-Custodial Agent: http://localhost:${PORT}`);
-  console.log(`⛓️  X Layer Testnet (Chain ID: 195) | Fee: 3.00%`);
+  console.log(`🎁 ClaimAssist Dynamic Agent: http://localhost:${PORT}`);
+  console.log(`⛓️  Multi-Chain Airdrop Claim Builder | Fee: 3.00%`);
   console.log(`==================================================\n`);
 });
